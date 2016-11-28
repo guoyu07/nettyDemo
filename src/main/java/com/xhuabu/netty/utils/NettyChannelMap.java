@@ -8,10 +8,14 @@ import io.netty.channel.Channel;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class NettyChannelMap {
+	//所有连接同道的队列
+	public static ConcurrentLinkedQueue channleQueue = new ConcurrentLinkedQueue();
+	public static Channel effectChannel = null;
 
 	/**
 	 * 1线服务标签 （true 由FuturesQuotaClientHander 分发行情数据 Map<flag,true>）

@@ -5,6 +5,7 @@ import com.xhuabu.netty.utils.LuckinEncoder;
 import com.xhuabu.netty.utils.NettyChannelMap;
 import io.netty.channel.*;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.handler.timeout.IdleStateHandler;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -20,6 +21,9 @@ import java.util.concurrent.ExecutorService;
  */
 @Component
 public class InitHandler extends ChannelInitializer<SocketChannel> {
+    private final static int readerIdleTimeSeconds = 40;//读操作空闲30秒
+    private final static int writerIdleTimeSeconds = 50;//写操作空闲60秒
+    private final static int allIdleTimeSeconds = 100;//读写全部空闲100秒
     NettyHandler handler;
     ExecutorService pool;
 
@@ -63,6 +67,7 @@ public class InitHandler extends ChannelInitializer<SocketChannel> {
         ChannelPipeline pipeline = ch.pipeline();
         pipeline.addLast(new LuckinDecoder());
         pipeline.addLast(new LuckinEncoder());
+        pipeline.addLast("idleStateHandler",new IdleStateHandler(readerIdleTimeSeconds, writerIdleTimeSeconds,allIdleTimeSeconds));
         pipeline.addLast(coreHandler);
     }
 

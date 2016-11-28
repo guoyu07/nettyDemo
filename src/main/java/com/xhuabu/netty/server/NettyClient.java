@@ -97,14 +97,14 @@ public class NettyClient  implements InitializingBean {
 //        NettyChannelMap.list.add(configMap2);
 
         new Thread() {
-                                        public void run() {
-                                            try {
-                                                NettyClient.connect(new MyHandler2(), 1, "127.0.0.1", 33333);
-                                            } catch (Exception e) {
-                                                e.printStackTrace();
-                                            }
-                                        }
-                                    }.start();
+                public void run() {
+                    try {
+                        NettyClient.connect(new MyHandler2(), 1, "127.0.0.1", 33333);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }.start();
 
         new Thread() {
             public void run() {

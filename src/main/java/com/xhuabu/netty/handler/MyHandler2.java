@@ -30,34 +30,42 @@ public class MyHandler2 implements NettyHandler {
 
     private static Logger logger = Logger.getLogger(MyHandler2.class);
     static AtomicBoolean flag ;
+    static Channel ch;
     private static ExecutorService pool = Executors.newSingleThreadExecutor();
 
     @Override
     public void channelRegistered(Channel channel) {
-
-        synchronized (MyHandler2.class) {
-
-//            t = new Timer2();
-//            Timer timer2 = new Timer();
-//            timer2.schedule(t, 0, 3000l);
-
-            //确保chanleMap中只有一个通道为true
-            flag = new AtomicBoolean(false);
-            for (Map.Entry<Channel, AtomicBoolean> entry :
-                    chanleMap.entrySet()) {
-                logger.info("flag" + "----" + flag);
-                if (entry.getValue().get()) {
-                    flag.compareAndSet(false, true);
-                    logger.info("flag" + "====" + flag);
-                    break;
-                }
-            }
-            if (flag.get()) {
-                chanleMap.put(channel, new AtomicBoolean(false));
-            } else {
-                chanleMap.put(channel, new AtomicBoolean(true));
-            }
+        ch = channel;
+        if(NettyChannelMap.effectChannel == null){
+            NettyChannelMap.effectChannel = ch;
         }
+        if (!NettyChannelMap.channleQueue.contains(ch)){
+            NettyChannelMap.channleQueue.add(ch);
+        }
+
+//        synchronized (MyHandler2.class) {
+//
+////            t = new Timer2();
+////            Timer timer2 = new Timer();
+////            timer2.schedule(t, 0, 3000l);
+//
+//            //确保chanleMap中只有一个通道为true
+//            flag = new AtomicBoolean(false);
+//            for (Map.Entry<Channel, AtomicBoolean> entry :
+//                    chanleMap.entrySet()) {
+//                logger.info("flag" + "----" + flag);
+//                if (entry.getValue().get()) {
+//                    flag.compareAndSet(false, true);
+//                    logger.info("flag" + "====" + flag);
+//                    break;
+//                }
+//            }
+//            if (flag.get()) {
+//                chanleMap.put(channel, new AtomicBoolean(false));
+//            } else {
+//                chanleMap.put(channel, new AtomicBoolean(true));
+//            }
+//        }
         logger.info(chanleMap);
 
 
@@ -67,35 +75,39 @@ public class MyHandler2 implements NettyHandler {
 
     @Override
     public void handleMsg(Channel channel, String json) {
-
-        NettyChannelMap.BoolFlag = true;
-        logger.info("====now all ====="+NettyChannelMap.chanleMap);
-
-        if(NettyChannelMap.chanleMap.get(channel).get()) {
+        if(ch==NettyChannelMap.effectChannel){
+           logger.info("effect:"+NettyChannelMap.effectChannel+"==========ch:"+ch);
             logger.info("message received:" + json+"channle:"+channel);
         }
+//        NettyChannelMap.BoolFlag = true;
+//        logger.info("====now all ====="+NettyChannelMap.chanleMap);
+//
+//        if(NettyChannelMap.chanleMap.get(channel).get()) {
+//            logger.info("message received:" + json+"channle:"+channel);
+//        }
     }
 
     @Override
     public void channelRemoved(Channel channel) {
 
+        NettyChannelMap.channleQueue.remove(ch);
+        NettyChannelMap.effectChannel= (Channel) NettyChannelMap.channleQueue.peek();
 
 
-
-        for (Map.Entry<Channel, AtomicBoolean> entry :
-                chanleMap.entrySet()) {
-
-                if(entry.getValue().get()){
-                    entry.getValue().compareAndSet(true,false);
-                }else {
-                    entry.getValue().compareAndSet(false,true);
-                }
-
-
-        }
-        chanleMap.remove(channel);
+//        for (Map.Entry<Channel, AtomicBoolean> entry :
+//                chanleMap.entrySet()) {
+//
+//                if(entry.getValue().get()){
+//                    entry.getValue().compareAndSet(true,false);
+//                }else {
+//                    entry.getValue().compareAndSet(false,true);
+//                }s
+//
+//
+//        }
+//        chanleMap.remove(channel);
         //获取当前断开连接的host 跟 port
-        final InetSocketAddress socket = (InetSocketAddress) channel.remoteAddress();
+        final InetSocketAddress socket = (InetSocketAddress) ch.remoteAddress();
         final String host = socket.getHostString();
         final Integer port = socket.getPort();
 
